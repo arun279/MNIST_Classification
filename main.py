@@ -1,29 +1,40 @@
-# coding: utf-8
-
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 import numpy as np
 import random as ran
+import tensorflow as tf
 
+# comment
 learning_rate = 0.01
 training_epochs = 25
 batch_size = 100
 display_step = 1
 
+# x = tf.placeholder(tf.float32, [None, 784])
+# y = tf.placeholder(tf.float32, [None, 10])
+
 x = tf.placeholder(tf.float32, [None, 784])
-y = tf.placeholder(tf.float32, [None, 10])
-
-W = tf.Variable(tf.zeros([784,10]))
+W = tf.Variable(tf.zeros([784, 10]))
 b = tf.Variable(tf.zeros([10]))
+y = tf.nn.softmax(tf.matmul(x, W) + b)
 
-pred = tf.nn.softmax(tf.matmul(x, W) + b)
+# W = tf.Variable(tf.zeros([784,10]))
+# b = tf.Variable(tf.zeros([10]))
+y_ = tf.placeholder(tf.float32, [None, 10])
 
-cost = tf.reduce_mean(-tf.reduce_sum(y*tf.log(pred), reduction_indices=1))
+# pred = tf.nn.softmax(tf.matmul(x, W) + b)
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 
-optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
+# cost = tf.reduce_mean(-tf.reduce_sum(y*tf.log(pred), reduction_indices=1))
+train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 
-init = tf.global_variables_initializer()
+# optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
+sess = tf.InteractiveSession()
 
+# init = tf.global_variables_initializer()
+tf.global_variables_initializer().run()
+
+'''
 # Start training
 with tf.Session() as sess:
 
@@ -53,6 +64,16 @@ with tf.Session() as sess:
     # Calculate accuracy
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     print("Accuracy:", accuracy.eval({x: mnist.test.images, y: mnist.test.labels}))
+'''
+
+for _ in range(1000):
+    batch_xs, batch_ys = mnist.train.next_batch(100)
+    sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+print(sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
 
 #CNN
 
