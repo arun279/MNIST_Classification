@@ -11,7 +11,7 @@ In this code, I try to retrieve USPS data from a directory structure
 where name of the directort is the label for the files in that directory
 '''
 
-path = 'F:/UB/Sem 1/CSE574 - Intro to ML/Assignments/3/new_data/proj3_images/Numerals/'
+path = './images/Numerals/'
 
 # Initialize 2 lists for labels and images
 imlist = []
