@@ -1,6 +1,12 @@
 
 # coding: utf-8
 
+# In[21]:
+
+
+
+# coding: utf-8
+
 # In[1]:
 
 
@@ -120,12 +126,13 @@ def load_mnist_data(filename = 'mnist_data.pkl',standardize = True):
     train_data, valid_data, test_data = train_data, valid_data, test_data
     
     return train_data,train_labels,valid_data,valid_labels, test_data, test_labels
-train_data,train_labels,valid_data, valid_labels, test_data,test_labels = load_mnist_data()
+
+#train_data,train_labels,valid_data, valid_labels, test_data,test_labels = load_mnist_data()
 
 #One hot encode the labels
-train_labels = np.array(pd.get_dummies(train_labels.flatten())).T
-valid_labels = np.array(pd.get_dummies(valid_labels.flatten())).T
-test_labels = np.array(pd.get_dummies(test_labels.flatten())).T
+#train_labels = np.array(pd.get_dummies(train_labels.flatten())).T
+#valid_labels = np.array(pd.get_dummies(valid_labels.flatten())).T
+#test_labels = np.array(pd.get_dummies(test_labels.flatten())).T
 
 print("Data loaded.")
 print("Shapes of data are as follows: ")
@@ -208,7 +215,7 @@ tf.set_random_seed(2)
 batch_size = 100
 learning_rate = 1e-4
 m = 784
-epochs = 1000
+epochs = 50
 n = train_data.shape[1]
 k = 10 #Number of classes
 
@@ -227,6 +234,11 @@ y = tf.nn.softmax(tf.matmul(x, W) + b)
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_orig * tf.log(y), reduction_indices=[1]))
 optimizer = tf.train.AdamOptimizer().minimize(cross_entropy)
 
+losses = []
+train_accs = []
+valid_accs = []
+test_accs = []
+usps_accs = []
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     for epoch in range(epochs):
@@ -236,17 +248,68 @@ with tf.Session() as sess:
             _,c = sess.run([optimizer,cross_entropy], feed_dict={x: current_x, y_orig: current_y})
             epoch_loss += c
         print("Loss at epoch %d: %.3f" %(epoch,epoch_loss))
+        losses.append(epoch_loss)
         correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_orig,1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-        print('Train accuracy:',accuracy.eval({x:mnist.train.images, y_orig: mnist.train.labels}))
-        print('Validation accuracy:',accuracy.eval({x:mnist.validation.images, y_orig: mnist.validation.labels}))
-        print('Test accuracy:',accuracy.eval({x:mnist.test.images, y_orig: mnist.test.labels}))
-        print('USPS Accuracy:',accuracy.eval({x:usps_images_shuf, y_orig: usps_labels_shuf}))
-    
+        train_accuracy_mnist = accuracy.eval({x:mnist.train.images, y_orig: mnist.train.labels})
+        test_accuracy_mnist = accuracy.eval({x:mnist.test.images, y_orig: mnist.test.labels})
+        valid_accuracy_mnist = accuracy.eval({x:mnist.validation.images, y_orig: mnist.validation.labels})
+        usps_accuracy = accuracy.eval({x:usps_images_shuf, y_orig: usps_labels_shuf})
+        print('Train accuracy:',train_accuracy_mnist)
+        print('Validation accuracy:',valid_accuracy_mnist)
+        print('Test accuracy:',test_accuracy_mnist)
+        print('USPS Accuracy:',usps_accuracy)
+        train_accs.append(train_accuracy_mnist)
+        test_accs.append(test_accuracy_mnist)
+        valid_accs.append(valid_accuracy_mnist)
+        usps_accs.append(usps_accuracy)
+        
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+rows = 1
+cols = 2
+fig, axs = plt.subplots(rows,cols,figsize=(10,5))
+red_patch = mpatches.Patch(color='red', label='MNIST train accuracy')
+blue_patch = mpatches.Patch(color='blue', label='MNIST validation accuracy')
+green_patch = mpatches.Patch(color='green', label='MNIST test accuracy')
+axs[0].legend(handles=[red_patch, blue_patch, green_patch])
+axs[0].plot(x_plot, train_accs,'r',x_plot, valid_accs, 'b', x_plot, test_accs, 'g')
+axs[0].set_title("Accuracies on MNIST")
 
+yellow_patch = mpatches.Patch(color='yellow', label='USPS accuracy')
+axs[1].legend(handles = [yellow_patch])
+axs[1].plot(x_plot, usps_accs, 'y')
+axs[1].set_title("Accuracies on USPS")
 
 # In[7]:
 
 
 
+
+
+
+# In[20]:
+
+
+
+
+
+# In[ ]:
+
+
+fig, axs = plt.subplots(rows,cols,figsize=(30,30))
+    
+    count = 0
+    
+    for i in range(rows):
+        for j in range(cols):
+            if count >= len(grid_search_dict.keys()):
+                break
+            else:
+                err = grid_search_dict[count]['errors']
+                axs[i,j].plot(range(len(err)), err)
+                title = ("Learning rate: " + str(grid_search_dict[count]['learning_rate']) +
+                         " Lambda: " + str(grid_search_dict[count]["L2_Lambda"]) +
+                         " M: " + str(grid_search_dict[count]['M']))
+                axs[i,j].set_title(title)
 
