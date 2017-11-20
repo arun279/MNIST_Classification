@@ -268,6 +268,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 rows = 1
 cols = 2
+x_plot = list(range(epochs))
 fig, axs = plt.subplots(rows,cols,figsize=(10,5))
 red_patch = mpatches.Patch(color='red', label='MNIST train accuracy')
 blue_patch = mpatches.Patch(color='blue', label='MNIST validation accuracy')
@@ -280,36 +281,4 @@ yellow_patch = mpatches.Patch(color='yellow', label='USPS accuracy')
 axs[1].legend(handles = [yellow_patch])
 axs[1].plot(x_plot, usps_accs, 'y')
 axs[1].set_title("Accuracies on USPS")
-
-# In[7]:
-
-
-
-
-
-
-# In[20]:
-
-
-
-
-
-# In[ ]:
-
-
-fig, axs = plt.subplots(rows,cols,figsize=(30,30))
-    
-    count = 0
-    
-    for i in range(rows):
-        for j in range(cols):
-            if count >= len(grid_search_dict.keys()):
-                break
-            else:
-                err = grid_search_dict[count]['errors']
-                axs[i,j].plot(range(len(err)), err)
-                title = ("Learning rate: " + str(grid_search_dict[count]['learning_rate']) +
-                         " Lambda: " + str(grid_search_dict[count]["L2_Lambda"]) +
-                         " M: " + str(grid_search_dict[count]['M']))
-                axs[i,j].set_title(title)
 

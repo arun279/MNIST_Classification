@@ -1,14 +1,10 @@
 
-# coding: utf-8
-
-# In[1]:
-
 
 import os
 import cv2
 import numpy as np
 import pandas as pd
-path = './datafiles/Numerals/'
+path = './images/Numerals/'
 
 # Initialize 2 lists for labels and images
 imlist = []
@@ -40,8 +36,8 @@ np.random.seed(42)
 # Randomize the input data
 ids = list(range(0,len(labels)))
 np.random.shuffle(ids)
-images_shuf = images[ids]
-labels_shuf = labels[ids]
+usps_images_shuf = images[ids]
+usps_labels_shuf = labels[ids]
 
 
 # In[2]:
@@ -50,20 +46,6 @@ labels_shuf = labels[ids]
 #DNN using MNIST data
 import tensorflow as tf
 
-"""
-input > weight  > hidden layer 1 (activation function)
-> weights > hidden l 2 (activation function) 
-> weights > output layer
-
-compare output to intended output >
-cost function (cross entropy)
-optimization function ( optimizer) > minimize cost
-(AdamOptimizer...SGD, AdaGrad)
-
-backpropagation
-feed forward + backprop
-
-"""
 
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("tmp/data/",one_hot=True)
@@ -86,27 +68,23 @@ def NN_model(data):
     l1 = tf.add(tf.matmul(data,hidden_1_layer['weights']), hidden_1_layer['biases'])
     l1 = tf.nn.relu(l1)
 
-
-    #l2 = tf.add(tf.matmul(l1,hidden_2_layer['weights']),hidden_2_layer['biases'])
-    #l2 = tf.nn.relu(l2)
-
-
-    #l3 = tf.add(tf.matmul(l2,hidden_3_layer['weights']), hidden_3_layer['biases'])
-    #l3 = tf.nn.relu(l3)
-
-
     output = tf.matmul(l1, output_layer['weights']) + output_layer['biases']
 
     return output
 
+losses = []
+train_accs = []
+valid_accs = []
+test_accs = []
+usps_accs = []
+epochs = 10
+    
 def train_neural_network(x):
     prediction = NN_model(x)
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = prediction,labels = y))
 
     #Minimize cost
     optimizer = tf.train.AdamOptimizer().minimize(cost)
-
-    epochs = 100
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -116,24 +94,42 @@ def train_neural_network(x):
                 current_x,current_y = mnist.train.next_batch(batch_size)
                 _,c = sess.run([optimizer,cost], feed_dict = {x:current_x,y:current_y})
                 epoch_loss += c
-                
+            
+            
             print('Epoch', epoch, 'done out of', epochs,'loss:',epoch_loss)
             correct = tf.equal(tf.argmax(prediction,1),tf.argmax(y,1))
             accuracy = tf.reduce_mean(tf.cast(correct,'float'))
-            print('Validation accuracy:',accuracy.eval({x:mnist.validation.images, y: mnist.validation.labels}))
-            print('Test accuracy:',accuracy.eval({x:mnist.test.images, y: mnist.test.labels}))
-            print('USPS accuracy:',accuracy.eval({x:images_shuf, y: labels_shuf}))
+            train_accuracy_mnist = accuracy.eval({x:mnist.train.images, y: mnist.train.labels})
+            test_accuracy_mnist = accuracy.eval({x:mnist.test.images, y: mnist.test.labels})
+            valid_accuracy_mnist = accuracy.eval({x:mnist.validation.images, y: mnist.validation.labels})
+            usps_accuracy = accuracy.eval({x:usps_images_shuf, y: usps_labels_shuf})
+            print('Train accuracy:',train_accuracy_mnist)
+            print('Validation accuracy:',valid_accuracy_mnist)
+            print('Test accuracy:',test_accuracy_mnist)
+            print('USPS Accuracy:',usps_accuracy)
+            train_accs.append(train_accuracy_mnist)
+            test_accs.append(test_accuracy_mnist)
+            valid_accs.append(valid_accuracy_mnist)
+            usps_accs.append(usps_accuracy)
+        
+
 train_neural_network(x)
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
+rows = 1
+cols = 2
+x_plot = list(range(epochs))
+fig, axs = plt.subplots(rows,cols,figsize=(10,5))
+red_patch = mpatches.Patch(color='red', label='MNIST train accuracy')
+blue_patch = mpatches.Patch(color='blue', label='MNIST validation accuracy')
+green_patch = mpatches.Patch(color='green', label='MNIST test accuracy')
+axs[0].legend(handles=[red_patch, blue_patch, green_patch])
+axs[0].plot(x_plot, train_accs,'r',x_plot, valid_accs, 'b', x_plot, test_accs, 'g')
+axs[0].set_title("Accuracies on MNIST")
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
+yellow_patch = mpatches.Patch(color='yellow', label='USPS accuracy')
+axs[1].legend(handles = [yellow_patch])
+axs[1].plot(x_plot, usps_accs, 'y')
+axs[1].set_title("Accuracies on USPS")
 
