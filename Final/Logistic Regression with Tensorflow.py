@@ -216,6 +216,7 @@ batch_size = 100
 learning_rate = 1e-4
 m = 784
 epochs = 50
+
 n = train_data.shape[1]
 k = 10 #Number of classes
 

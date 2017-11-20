@@ -95,7 +95,7 @@ def train_neural_network(x):
                 _,c = sess.run([optimizer,cost], feed_dict = {x:current_x,y:current_y})
                 epoch_loss += c
             
-            
+            losses.append(epoch_loss)
             print('Epoch', epoch, 'done out of', epochs,'loss:',epoch_loss)
             correct = tf.equal(tf.argmax(prediction,1),tf.argmax(y,1))
             accuracy = tf.reduce_mean(tf.cast(correct,'float'))
@@ -117,6 +117,7 @@ train_neural_network(x)
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
+%matplotlib inline
 rows = 1
 cols = 2
 x_plot = list(range(epochs))
@@ -124,12 +125,17 @@ fig, axs = plt.subplots(rows,cols,figsize=(10,5))
 red_patch = mpatches.Patch(color='red', label='MNIST train accuracy')
 blue_patch = mpatches.Patch(color='blue', label='MNIST validation accuracy')
 green_patch = mpatches.Patch(color='green', label='MNIST test accuracy')
-axs[0].legend(handles=[red_patch, blue_patch, green_patch])
-axs[0].plot(x_plot, train_accs,'r',x_plot, valid_accs, 'b', x_plot, test_accs, 'g')
+yellow_patch = mpatches.Patch(color='yellow', label='USPS accuracy')
+
+
+axs[0].legend(handles=[red_patch])
+axs[0].plot(x_plot, train_accs,'r',x_plot, valid_accs, 'b', x_plot, test_accs, 'g',
+           x_plot, usps_accs, 'y')
 axs[0].set_title("Accuracies on MNIST")
 
-yellow_patch = mpatches.Patch(color='yellow', label='USPS accuracy')
-axs[1].legend(handles = [yellow_patch])
-axs[1].plot(x_plot, usps_accs, 'y')
-axs[1].set_title("Accuracies on USPS")
+red_patch = mpatches.Patch(color='red', label='Loss on MNIST')
 
+
+axs[1].legend(handles=[red_patch])
+axs[1].plot(x_plot, losses,'r')
+axs[1].set_title("Loss on MNIST")
