@@ -28,7 +28,7 @@ for d in dirs:
                 image = cv2.imread(os.path.join(path,d,fname))
                 im_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 im_resize = cv2.resize(im_gray, (28, 28))
-                imlist.append(np.ravel(im_resize))
+                imlist.append(255-np.ravel(im_resize))
                 lblist.append(int(d))
 
 # Normalize the values in the image
